@@ -1,0 +1,75 @@
+from datetime import datetime, timedelta
+from typing import Optional
+from jose import jwt
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from app.core.config import settings
+from app.features.auth.models import User, UserOTP
+from app.features.auth.schemas import UserRegister
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    """Hashes a raw password."""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifies a password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Creates a JWT access token."""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+def get_user_by_email(db: Session, email: str) -> Optional[User]:
+    """Queries user by email address."""
+    return db.query(User).filter(User.email == email).first()
+
+def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
+    """Queries user by phone number."""
+    return db.query(User).filter(User.phone_number == phone).first()
+
+def create_user(db: Session, user_data: UserRegister) -> User:
+    """Creates a new user account."""
+    hashed_pwd = hash_password(user_data.password)
+    db_user = User(
+        email=user_data.email,
+        phone_number=user_data.phone_number,
+        hashed_password=hashed_pwd
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def generate_otp_for_phone(db: Session, phone_number: str) -> str:
+    """Generates and stores an OTP code (mock 123456 code for local dev)."""
+    otp_code = "123456"  # Mock OTP
+    expires_at = datetime.utcnow() + timedelta(minutes=5)
+    
+    otp_entry = UserOTP(
+        phone_number=phone_number,
+        otp_code=otp_code,
+        expires_at=expires_at
+    )
+    db.add(otp_entry)
+    db.commit()
+    return otp_code
+
+def verify_otp_code(db: Session, phone_number: str, otp_code: str) -> bool:
+    """Verifies a phone OTP code."""
+    otp_record = db.query(UserOTP).filter(
+        UserOTP.phone_number == phone_number,
+        UserOTP.otp_code == otp_code,
+        UserOTP.is_used == False,
+        UserOTP.expires_at > datetime.utcnow()
+    ).order_by(UserOTP.created_at.desc()).first()
+
+    if otp_record:
+        otp_record.is_used = True
+        db.commit()
+        return True
+    return False
