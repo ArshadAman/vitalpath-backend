@@ -35,6 +35,10 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/otp/send")
 def send_otp(otp_req: OTPRequest, db: Session = Depends(get_db)):
+    user = get_user_by_phone(db, otp_req.phone_number)
+    if not user:
+        raise HTTPException(status_code=400, detail="Phone number not registered. Please sign up first.")
+    
     otp_code = generate_otp_for_phone(db, otp_req.phone_number)
     # Trigger asynchronous Celery task to dispatch OTP
     send_otp_task.delay(otp_req.phone_number, otp_code)
@@ -48,9 +52,7 @@ def verify_otp(verify_data: OTPVerify, db: Session = Depends(get_db)):
 
     user = get_user_by_phone(db, verify_data.phone_number)
     if not user:
-        # Auto-register user if first time logging in with OTP
-        register_data = UserRegister(phone_number=verify_data.phone_number, password="default_otp_password")
-        user = create_user(db, register_data)
+        raise HTTPException(status_code=400, detail="User not found")
 
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}

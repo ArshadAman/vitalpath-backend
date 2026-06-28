@@ -46,8 +46,8 @@ def create_user(db: Session, user_data: UserRegister) -> User:
     return db_user
 
 def generate_otp_for_phone(db: Session, phone_number: str) -> str:
-    """Generates and stores an OTP code (mock 123456 code for local dev)."""
-    otp_code = "123456"  # Mock OTP
+    """Generates and stores an OTP code (mock 0000 code for local dev)."""
+    otp_code = "0000"  # Mock OTP
     expires_at = datetime.utcnow() + timedelta(minutes=5)
     
     otp_entry = UserOTP(
@@ -73,3 +73,31 @@ def verify_otp_code(db: Session, phone_number: str, otp_code: str) -> bool:
         db.commit()
         return True
     return False
+
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
+from app.core.database import get_db
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """Verifies access token and returns the current authenticated user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if user is None:
+        raise credentials_exception
+    return user
