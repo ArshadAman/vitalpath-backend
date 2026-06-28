@@ -28,8 +28,8 @@ def test_score_calculation(client):
         "date_of_birth": (datetime.utcnow() - timedelta(days=32*365)).isoformat(), # 32 years old
         "height": 175.0,
         "weight": 80.0,
-        "smoking_status": "active",
-        "exercise_frequency": "rarely"
+        "smoking": "active",
+        "activity": "rarely"
     }
     profile_response = client.post("/profile", json=profile_payload, headers=headers)
     assert profile_response.status_code == 201

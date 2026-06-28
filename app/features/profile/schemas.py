@@ -4,27 +4,30 @@ from datetime import datetime
 
 class HealthProfileBase(BaseModel):
     name: Optional[str] = None
+    age: Optional[int] = None
     gender: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
     height: Optional[float] = None
     weight: Optional[float] = None
-    blood_group: Optional[str] = None
+    bloodGroup: Optional[str] = None
     
-    has_diabetes: Optional[str] = "no"
-    has_hypertension: Optional[str] = "no"
-    has_cholesterol: Optional[str] = "no"
-    has_liver_disease: Optional[str] = "no"
-    has_heart_disease: Optional[str] = "no"
+    # Custom Targets
+    waterTarget: Optional[int] = 2000
+    sleepTarget: Optional[float] = 8.0
     
-    family_diabetes: Optional[str] = "no"
-    family_heart_disease: Optional[str] = "no"
-    family_hypertension: Optional[str] = "no"
-    family_cancer: Optional[str] = "no"
+    # Clinical profiles
+    allergies: Optional[str] = None
+    medications: Optional[str] = None
     
-    smoking_status: Optional[str] = "never"
-    alcohol_consumption: Optional[str] = "none"
-    diet_type: Optional[str] = "mixed"
-    exercise_frequency: Optional[str] = "rarely"
+    # Flags mapping
+    diabetes: Optional[bool] = False
+    hypertension: Optional[bool] = False
+    heartDisease: Optional[bool] = False
+    strokeHistory: Optional[bool] = False
+    
+    # Lifestyle choices mapping
+    smoking: Optional[str] = "none"
+    activity: Optional[str] = "active"
+    diet: Optional[str] = "balanced"
 
 class HealthProfileCreate(HealthProfileBase):
     pass

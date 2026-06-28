@@ -71,6 +71,15 @@ Configuration parameters are automatically loaded from `.env` (via Pydantic Sett
 
 ---
 
+## 4a. Mock OTP & Local Development
+
+Because an external SMS gateway provider (such as Twilio) is not connected in the development sandbox, the system implements a **master OTP code: `0000`** (4 digits). 
+* To authenticate via phone, register the phone number via the `/auth/register` signup endpoint first.
+* Trigger a verification dispatch request via `/auth/otp/send`.
+* Enter code `0000` via `/auth/otp/verify` to successfully authenticate and receive a JWT.
+
+---
+
 ## 5. Local Setup & Running
 
 ### Requirements
