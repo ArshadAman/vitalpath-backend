@@ -20,11 +20,17 @@ class HealthProfile(Base):
     # Targets & Parameters
     water_target = Column(Integer, default=2000)
     sleep_target = Column(Float, default=8.0)
+    calorie_target = Column(Integer, default=2000)
     allergies = Column(String, nullable=True)
     medications = Column(String, nullable=True)
 
+    # SaaS SaaS parameters
+    health_goal = Column(String, default="wellness") # weight_loss, muscle_gain, cardiovascular, stress, longevity, wellness
+    emergency_contact_name = Column(String, nullable=True)
+    emergency_contact_phone = Column(String, nullable=True)
+
     # Health History Flags
-    has_diabetes = Column(String, default="no") # no, yes
+    has_diabetes = Column(String, default="no")
     has_hypertension = Column(String, default="no")
     has_cholesterol = Column(String, default="no")
     has_liver_disease = Column(String, default="no")
@@ -57,6 +63,22 @@ class HealthProfile(Base):
     @property
     def sleepTarget(self):
         return self.sleep_target
+
+    @property
+    def calorieTarget(self):
+        return self.calorie_target
+
+    @property
+    def healthGoal(self):
+        return self.health_goal
+
+    @property
+    def emergencyContactName(self):
+        return self.emergency_contact_name
+
+    @property
+    def emergencyContactPhone(self):
+        return self.emergency_contact_phone
 
     @property
     def diabetes(self) -> bool:

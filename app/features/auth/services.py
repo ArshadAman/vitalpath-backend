@@ -24,20 +24,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Creates a JWT refresh token."""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     """Queries user by email address."""
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(User.email == email.strip().lower()).first()
 
 def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
     """Queries user by phone number."""
-    return db.query(User).filter(User.phone_number == phone).first()
+    return db.query(User).filter(User.phone_number == phone.strip()).first()
 
 def create_user(db: Session, user_data: UserRegister) -> User:
     """Creates a new user account."""
     hashed_pwd = hash_password(user_data.password)
     db_user = User(
-        email=user_data.email,
-        phone_number=user_data.phone_number,
+        email=user_data.email.strip().lower() if user_data.email else None,
+        phone_number=user_data.phone_number.strip() if user_data.phone_number else None,
         hashed_password=hashed_pwd
     )
     db.add(db_user)

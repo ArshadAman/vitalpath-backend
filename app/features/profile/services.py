@@ -19,8 +19,12 @@ def create_health_profile(db: Session, user_id: int, profile_data: HealthProfile
         blood_group=profile_data.bloodGroup,
         water_target=profile_data.waterTarget,
         sleep_target=profile_data.sleepTarget,
+        calorie_target=profile_data.calorieTarget,
         allergies=profile_data.allergies,
         medications=profile_data.medications,
+        health_goal=profile_data.healthGoal,
+        emergency_contact_name=profile_data.emergencyContactName,
+        emergency_contact_phone=profile_data.emergencyContactPhone,
         has_diabetes="yes" if profile_data.diabetes else "no",
         has_hypertension="yes" if profile_data.hypertension else "no",
         has_heart_disease="yes" if profile_data.heartDisease else "no",
@@ -44,8 +48,12 @@ def update_health_profile(db: Session, db_profile: HealthProfile, update_data: H
     if update_data.bloodGroup is not None: db_profile.blood_group = update_data.bloodGroup
     if update_data.waterTarget is not None: db_profile.water_target = update_data.waterTarget
     if update_data.sleepTarget is not None: db_profile.sleep_target = update_data.sleepTarget
+    if update_data.calorieTarget is not None: db_profile.calorie_target = update_data.calorieTarget
     if update_data.allergies is not None: db_profile.allergies = update_data.allergies
     if update_data.medications is not None: db_profile.medications = update_data.medications
+    if update_data.healthGoal is not None: db_profile.health_goal = update_data.healthGoal
+    if update_data.emergencyContactName is not None: db_profile.emergency_contact_name = update_data.emergencyContactName
+    if update_data.emergencyContactPhone is not None: db_profile.emergency_contact_phone = update_data.emergencyContactPhone
     if update_data.diabetes is not None: db_profile.has_diabetes = "yes" if update_data.diabetes else "no"
     if update_data.hypertension is not None: db_profile.has_hypertension = "yes" if update_data.hypertension else "no"
     if update_data.heartDisease is not None: db_profile.has_heart_disease = "yes" if update_data.heartDisease else "no"

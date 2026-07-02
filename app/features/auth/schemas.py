@@ -21,7 +21,11 @@ class OTPVerify(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 class UserResponse(BaseModel):
     id: int
@@ -33,3 +37,8 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
+    email: EmailStr
+    name: Optional[str] = None

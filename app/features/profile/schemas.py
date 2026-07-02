@@ -13,10 +13,16 @@ class HealthProfileBase(BaseModel):
     # Custom Targets
     waterTarget: Optional[int] = 2000
     sleepTarget: Optional[float] = 8.0
+    calorieTarget: Optional[int] = 2000
     
     # Clinical profiles
     allergies: Optional[str] = None
     medications: Optional[str] = None
+    
+    # SaaS Health Parameters
+    healthGoal: Optional[str] = "wellness"
+    emergencyContactName: Optional[str] = None
+    emergencyContactPhone: Optional[str] = None
     
     # Flags mapping
     diabetes: Optional[bool] = False
