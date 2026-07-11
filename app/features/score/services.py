@@ -4,7 +4,7 @@ from datetime import datetime
 from app.features.score.models import HealthScoreLog
 from app.features.profile.services import get_health_profile
 from app.features.tracking.models import ActivityLog, SleepLog
-from app.features.reports.models import ExtractedMetric
+from app.features.reports.models import MedicalReport
 
 def calculate_health_metrics(db: Session, user_id: int) -> HealthScoreLog:
     """Calculates user overall health score (0-100) and biological health age based on health data."""
@@ -34,10 +34,21 @@ def calculate_health_metrics(db: Session, user_id: int) -> HealthScoreLog:
     steps = recent_activity.steps if recent_activity else 5000
     sleep_hours = recent_sleep.duration_hours if recent_sleep else 7.0
 
-    # Fetch recent medical reports metrics
-    hb_a1c = db.query(ExtractedMetric).join(ExtractedMetric.report).filter(
-        ExtractedMetric.test_name == "HbA1c"
-    ).order_by(ExtractedMetric.test_date.desc()).first()
+    # Fetch recent medical reports metrics from JSONB column
+    recent_reports = db.query(MedicalReport).filter(
+        MedicalReport.user_id == user_id,
+        MedicalReport.status == "completed"
+    ).order_by(MedicalReport.uploaded_at.desc()).all()
+    
+    hb_a1c_value = None
+    if recent_reports:
+        for r in recent_reports:
+            for m in r.metrics:
+                if m.get("test_name") == "HbA1c":
+                    hb_a1c_value = m.get("value")
+                    break
+            if hb_a1c_value is not None:
+                break
 
     # 2. Algorithm Logic
     base_score = 80
@@ -68,11 +79,11 @@ def calculate_health_metrics(db: Session, user_id: int) -> HealthScoreLog:
         health_age_offset += 3
 
     # Medical report impact (HbA1c)
-    if hb_a1c:
-        if hb_a1c.value > 6.5: # Diabetes range
+    if hb_a1c_value is not None:
+        if hb_a1c_value > 6.5: # Diabetes range
             base_score -= 15
             health_age_offset += 4
-        elif hb_a1c.value < 5.7: # Normal range
+        elif hb_a1c_value < 5.7: # Normal range
             base_score += 5
 
     # Clamp scores
@@ -84,7 +95,7 @@ def calculate_health_metrics(db: Session, user_id: int) -> HealthScoreLog:
         "sleep_hours_analyzed": sleep_hours,
         "smoking_status": smoking,
         "alcohol_consumption": alcohol,
-        "hba1c_level": hb_a1c.value if hb_a1c else None,
+        "hba1c_level": hb_a1c_value,
         "actual_age": actual_age
     }
 

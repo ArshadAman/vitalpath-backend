@@ -6,7 +6,12 @@ WORKDIR /workspace
 ENV PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1     PIP_NO_CACHE_DIR=off     PIP_DISABLE_PIP_VERSION_CHECK=on
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends     build-essential     libpq-dev     curl     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    curl \
+    tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
 COPY requirements.txt .

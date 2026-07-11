@@ -36,7 +36,11 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email.strip().lower()).first()
 
 def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
-    """Queries user by phone number."""
+    """Queries user by phone number (matching last 10 digits for prefix resilience)."""
+    clean_phone = "".join(c for c in phone if c.isdigit())
+    if len(clean_phone) >= 10:
+        suffix = clean_phone[-10:]
+        return db.query(User).filter(User.phone_number.like(f"%{suffix}")).first()
     return db.query(User).filter(User.phone_number == phone.strip()).first()
 
 def create_user(db: Session, user_data: UserRegister) -> User:
@@ -67,9 +71,12 @@ def generate_otp_for_phone(db: Session, phone_number: str) -> str:
     return otp_code
 
 def verify_otp_code(db: Session, phone_number: str, otp_code: str) -> bool:
-    """Verifies a phone OTP code."""
+    """Verifies a phone OTP code with prefix suffix resilience."""
+    clean_phone = "".join(c for c in phone_number if c.isdigit())
+    suffix = clean_phone[-10:] if len(clean_phone) >= 10 else phone_number
+    
     otp_record = db.query(UserOTP).filter(
-        UserOTP.phone_number == phone_number,
+        UserOTP.phone_number.like(f"%{suffix}"),
         UserOTP.otp_code == otp_code,
         UserOTP.is_used == False,
         UserOTP.expires_at > datetime.utcnow()

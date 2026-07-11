@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException, Response
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List, Optional
 from app.core.database import get_db
 from app.features.timeline.schemas import TimelineEventResponse, TimelineEventCreate
 from app.features.timeline.services import get_timeline_events, create_timeline_event
+from app.features.timeline.models import TimelineEvent
 from app.features.auth.services import get_current_user
 from app.features.auth.models import User
 
@@ -33,3 +34,13 @@ def read_timeline(
 def add_event(event_data: TimelineEventCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Creates a new health event on user timeline."""
     return create_timeline_event(db, current_user.id, event_data)
+
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_event(event_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Deletes a health event from timeline."""
+    event = db.query(TimelineEvent).filter(TimelineEvent.id == event_id, TimelineEvent.user_id == current_user.id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Timeline event not found")
+    db.delete(event)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

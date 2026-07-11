@@ -15,7 +15,7 @@ pgdata/
 redisdata/
 prometheus_data/
 grafana_data/
-/tmp/vitalpath_uploads/
+uploads/
 /tmp/vitalpath_audio/
 
 # Python (Backend)
