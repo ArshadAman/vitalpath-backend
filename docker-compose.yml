@@ -39,6 +39,17 @@ services:
       timeout: 5s
       retries: 5
 
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: vitalpath_whisper
+    environment:
+      - ASR_MODEL=small
+      - ASR_ENGINE=faster_whisper
+      - ASR_DEVICE=cpu
+    volumes:
+      - whisper_cache:/root/.cache/
+    restart: unless-stopped
+
   web:
     build:
       context: .
@@ -54,6 +65,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - WHISPER_URL=http://whisper:9000
     depends_on:
       db:
         condition: service_healthy
@@ -61,6 +73,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      whisper:
+        condition: service_started
 
   celery_worker:
     build:
@@ -76,6 +90,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - WHISPER_URL=http://whisper:9000
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +98,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      whisper:
+        condition: service_started
 
   prometheus:
     image: prom/prometheus:latest
@@ -108,3 +125,4 @@ volumes:
   redisdata:
   prometheus_data:
   grafana_data:
+  whisper_cache:

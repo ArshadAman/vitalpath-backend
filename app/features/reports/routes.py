@@ -13,6 +13,7 @@ from app.features.reports.services import (
     create_report_entry, get_medical_report, get_user_reports, update_report_metrics
 )
 from app.features.reports.tasks import process_report_ocr_task
+from app.features.score.services import calculate_health_metrics
 
 router = APIRouter(prefix="/reports", tags=["Medical Reports"])
 
@@ -66,6 +67,10 @@ def update_metrics(report_id: int, updated_metrics: List[ExtractedMetricSchema],
     # Serialize the validation schema array directly to the report record in JSON-compatible formats
     serialized = [m.model_dump(mode="json") for m in updated_metrics]
     updated = update_report_metrics(db, report_id, serialized)
+    
+    # Recalculate score dynamically
+    calculate_health_metrics(db, current_user.id)
+    
     return updated
 
 from fastapi.responses import FileResponse

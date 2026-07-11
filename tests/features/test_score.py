@@ -25,7 +25,7 @@ def test_score_calculation(client):
     profile_payload = {
         "name": "Score Test User",
         "gender": "male",
-        "date_of_birth": (datetime.utcnow() - timedelta(days=32*365)).isoformat(), # 32 years old
+        "age": 32,
         "height": 175.0,
         "weight": 80.0,
         "smoking": "active",
@@ -44,8 +44,12 @@ def test_score_calculation(client):
     assert calc_data["score"] < 80
     # Smoking offset (+5) and exercise offset (+2) should make health age higher than actual age (32)
     assert calc_data["health_age"] > 32
+    assert "factors" in calc_data
+    assert calc_data["factors"]["summary"]["actual_age"] == 32
+    assert calc_data["factors"]["summary"]["is_lab_verified"] is False # since no reports completed
 
     # 4. Read latest score
     latest_response = client.get("/score/latest", headers=headers)
     assert latest_response.status_code == 200
     assert latest_response.json()["score"] == calc_data["score"]
+    assert latest_response.json()["factors"]["summary"]["is_lab_verified"] is False

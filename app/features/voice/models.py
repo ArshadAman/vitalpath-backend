@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from datetime import datetime
 from app.core.database import Base
 
@@ -11,4 +11,6 @@ class VoiceJournalLog(Base):
     transcription = Column(String)
     language = Column(String)
     detected_intent = Column(String, nullable=True) # e.g., Smoking Event
+    status = Column(String, default="processing")   # processing, completed, failed
+    is_committed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

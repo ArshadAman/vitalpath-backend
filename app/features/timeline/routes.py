@@ -8,6 +8,7 @@ from app.features.timeline.services import get_timeline_events, create_timeline_
 from app.features.timeline.models import TimelineEvent
 from app.features.auth.services import get_current_user
 from app.features.auth.models import User
+from app.features.score.services import calculate_health_metrics
 
 router = APIRouter(prefix="/timeline", tags=["Health Timeline"])
 
@@ -33,7 +34,9 @@ def read_timeline(
 @router.post("", response_model=TimelineEventResponse, status_code=status.HTTP_201_CREATED)
 def add_event(event_data: TimelineEventCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Creates a new health event on user timeline."""
-    return create_timeline_event(db, current_user.id, event_data)
+    res = create_timeline_event(db, current_user.id, event_data)
+    calculate_health_metrics(db, current_user.id)
+    return res
 
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_event(event_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

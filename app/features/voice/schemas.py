@@ -9,6 +9,9 @@ class VoiceJournalResponse(BaseModel):
     transcription: str
     language: str
     detected_intent: Optional[str] = None
+    status: str = "processing"
+    event_data: Optional[dict] = None
+    is_committed: bool = False
     created_at: datetime
 
     class Config:

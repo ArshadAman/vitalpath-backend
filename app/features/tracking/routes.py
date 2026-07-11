@@ -12,13 +12,16 @@ from app.features.tracking.services import (
 )
 from app.features.auth.services import get_current_user
 from app.features.auth.models import User
+from app.features.score.services import calculate_health_metrics
 
 router = APIRouter(prefix="/tracking", tags=["Lifestyle Tracking"])
 
 @router.post("/activity", response_model=ActivityResponse, status_code=status.HTTP_201_CREATED)
 def record_activity(activity_data: ActivityCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Logs steps, distance, and active minutes."""
-    return log_activity(db, current_user.id, activity_data)
+    res = log_activity(db, current_user.id, activity_data)
+    calculate_health_metrics(db, current_user.id)
+    return res
 
 @router.get("/activity", response_model=List[ActivityResponse])
 def read_activities(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -28,7 +31,9 @@ def read_activities(current_user: User = Depends(get_current_user), db: Session 
 @router.post("/sleep", response_model=SleepResponse, status_code=status.HTTP_201_CREATED)
 def record_sleep(sleep_data: SleepCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Logs daily sleep logs."""
-    return log_sleep(db, current_user.id, sleep_data)
+    res = log_sleep(db, current_user.id, sleep_data)
+    calculate_health_metrics(db, current_user.id)
+    return res
 
 @router.get("/sleep", response_model=List[SleepResponse])
 def read_sleep_logs(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -38,7 +43,9 @@ def read_sleep_logs(current_user: User = Depends(get_current_user), db: Session 
 @router.post("/weight", response_model=WeightResponse, status_code=status.HTTP_201_CREATED)
 def record_weight(weight_data: WeightCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Logs weight metric."""
-    return log_weight(db, current_user.id, weight_data)
+    res = log_weight(db, current_user.id, weight_data)
+    calculate_health_metrics(db, current_user.id)
+    return res
 
 @router.get("/weight", response_model=List[WeightResponse])
 def read_weight_logs(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -48,7 +55,9 @@ def read_weight_logs(current_user: User = Depends(get_current_user), db: Session
 @router.post("/bp", response_model=BPResponse, status_code=status.HTTP_201_CREATED)
 def record_bp(bp_data: BPCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Logs blood pressure measurement."""
-    return log_bp(db, current_user.id, bp_data)
+    res = log_bp(db, current_user.id, bp_data)
+    calculate_health_metrics(db, current_user.id)
+    return res
 
 @router.get("/bp", response_model=List[BPResponse])
 def read_bp_logs(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
